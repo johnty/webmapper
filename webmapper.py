@@ -17,6 +17,7 @@ if 'tracing' in sys.argv[1:]:
     server.tracing = True
 
 def open_gui(port):
+
     url = 'http://localhost:%d'%port
     apps = ['~\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe --app=%s',
             '/usr/bin/chromium-browser --app=%s',
@@ -40,38 +41,40 @@ def open_gui(port):
     launcher = threading.Thread(target=launch)
     launcher.start()
 
-monitor = mapper.monitor(autosubscribe_flags=mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT)
+monitor = mapper.database(subscribe_flags=mapper.OBJ_ALL)
+#monitor = mapper.monitor(autosubscribe_flags=mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT)
 
 def on_device(dev, action):
-    if action == mapper.MDB_NEW:
-        server.send_command("new_device", dev)
-    if action == mapper.MDB_MODIFY:
-        server.send_command("mod_device", dev)
-    if action == mapper.MDB_REMOVE:
-        server.send_command("del_device", dev)
+    if action == mapper.ADDED:
+        server.send_command("new_device", dev.name)
+        print "on_device ",  dev.name
+    if action == mapper.MODIFIED:
+        server.send_command("mod_device", dev.name)
+    if action == mapper.REMOVED:
+        server.send_command("del_device", dev.name)
 
 def on_signal(sig, action):
-    if action == mapper.MDB_NEW:
+    if action == mapper.ADDED:
         server.send_command("new_signal", sig)
-    if action == mapper.MDB_MODIFY:
+    if action == mapper.MODIFIED:
         server.send_command("mod_signal", sig)
-    if action == mapper.MDB_REMOVE:
+    if action == mapper.REMOVED:
         server.send_command("del_signal", sig)
 
 def on_link(link, action):
-    if action == mapper.MDB_NEW:
+    if action == mapper.ADDED:
         server.send_command("new_link", link)
-    if action == mapper.MDB_MODIFY:
+    if action == mapper.MODIFIED:
         server.send_command("mod_link", link)
-    if action == mapper.MDB_REMOVE:
+    if action == mapper.REMOVED:
         server.send_command("del_link", link)
 
 def on_connection(con, action):
-    if action == mapper.MDB_NEW:
+    if action == mapper.ADDED:
         server.send_command("new_connection", con)
-    if action == mapper.MDB_MODIFY:
+    if action == mapper.MODIFIED:
         server.send_command("mod_connection", con)
-    if action == mapper.MDB_REMOVE:
+    if action == mapper.REMOVED:
         server.send_command("del_connection", con)
 
 def set_connection(con):
@@ -121,6 +124,8 @@ def set_connection(con):
                 con['dest_min'] = con['dest_min'][0]
         con['src_type'] = 'f'
     if (con.has_key('dest_max')):
+
+
         if (type(con['dest_max']) is int or type(con['dest_max']) is float):
             con['dest_max'] = float(con['dest_max'])
             numargs = 1;
@@ -134,16 +139,17 @@ def set_connection(con):
                 con['dest_max'] = con['dest_max'][0]
         con['src_type'] = 'f'
     monitor.modify_connection(con['src_name'], con['dest_name'], con)
+    
 
 def on_refresh(arg):
     global monitor
     del monitor
-    admin = mapper.admin(networkInterfaces['active'])
-    monitor = mapper.monitor(admin, autosubscribe_flags=mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT)
+    admin = mapper.network(networkInterfaces['active'])
+    monitor = mapper.database(admin, autosubscribe_flags=mapper.OBJ_DEVICES | mapper.OBJ_OUTPUT_SIGNALS)
     init_monitor()
 
 def on_save(arg):
-    ds = list(monitor.db.match_devices_by_name(arg['dev']))
+    ds = list(monitor.mapper_database_devices_by_name(arg['dev']))
     fn = '/'.join(ds[0]['name'].split('/')[1:])
     fn.replace('/','_')
     fn = '.'.join(fn.split('.')[:-1]+['json'])
@@ -176,16 +182,16 @@ def get_active_network(arg):
 
 
 def init_monitor():
-    monitor.db.add_device_callback(on_device)
-    monitor.db.add_signal_callback(on_signal)
-    monitor.db.add_link_callback(on_link)
-    monitor.db.add_connection_callback(on_connection)
+    monitor.add_device_callback(on_device)
+    #monitor.add_signal_callback(on_signal)
+    #monitor.add_link_callback(on_link)
+    #monitor.add_map_callback(on_connection)
 
 init_monitor()
 
 server.add_command_handler("all_devices",
                            lambda x: ("all_devices",
-                                      list(monitor.db.all_devices())))
+                                      list(monitor.devices())))
 
 def select_tab(src_dev):
     # TODO:
@@ -194,7 +200,7 @@ def select_tab(src_dev):
     #     monitor.subscribe(focus_dev, mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT, -1)
     if src_dev != "All Devices":
         monitor.subscribe(src_dev, mapper.SUB_DEVICE_OUTPUTS | mapper.SUB_DEVICE_CONNECTIONS_OUT, -1)
-        links = monitor.db.links_by_src_device_name(src_dev)
+        # links = monitor.links_by_property(); # .db.links_by_src_device_name(src_dev)
         for i in links:
             monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
 
@@ -210,17 +216,15 @@ def new_connection(args):
 server.add_command_handler("tab", lambda x: select_tab(x))
 
 server.add_command_handler("all_signals",
-                           lambda x: ("all_signals",
-                                      list(monitor.db.all_inputs())
-                                      + list(monitor.db.all_outputs())))
+                           lambda x: ("all_signals", list(monitor.signals()))) # .db.all_inputs())
+                                       # + list(monitor.db.all_outputs())))
 
 server.add_command_handler("all_links",
-                           lambda x: ("all_links",
-                                      list(monitor.db.all_links())))
+                           lambda x: ("all_links", list(monitor.links()))) # .db.all_links())))
 
 server.add_command_handler("all_connections",
                            lambda x: ("all_connections",
-                                      list(monitor.db.all_connections())))
+                                      list(monitor.maps())))
 
 server.add_command_handler("set_connection", set_connection)
 
