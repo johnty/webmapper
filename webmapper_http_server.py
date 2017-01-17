@@ -166,6 +166,7 @@ class MapperHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_websocket_8(self):
         def send_string(s):
+            print s
             opcode = chr((1<<7)|1) # FIN + text
             if len(s)<126:
                 L = chr(len(s))
@@ -187,6 +188,8 @@ class MapperHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             while not message_pipe.empty() and n < 30:
                 sendmsg = message_pipe.get()
                 if tracing: print 'ws_send:',sendmsg
+                print sendmsg[0]
+                print sendmsg[1]
                 s = json.dumps({"cmd": sendmsg[0],
                                 "args": sendmsg[1]})
                 send_string(s)
@@ -354,6 +357,7 @@ def handler_wait_command(out, args):
                               "args": msg[1]} )
 
 def handler_send_command(out, args):
+    print "server_send_command_handler"
     try:
         msgstring = args['msg']
         vals = json.loads(msgstring)

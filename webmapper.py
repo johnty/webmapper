@@ -46,12 +46,14 @@ monitor = mapper.database(subscribe_flags=mapper.OBJ_ALL)
 
 def on_device(dev, action):
     if action == mapper.ADDED:
-        server.send_command("new_device", dev.name)
-        print "on_device ",  dev.name
+        print "Device ", dev.name, "added"
+        server.send_command("new_device", dev)
     if action == mapper.MODIFIED:
-        server.send_command("mod_device", dev.name)
+        print "Device ", dev.name, "modified"
+        server.send_command("mod_device", dev)
     if action == mapper.REMOVED:
-        server.send_command("del_device", dev.name)
+        print "Device ", dev.name, "removed"
+        server.send_command("del_device", dev)
 
 def on_signal(sig, action):
     if action == mapper.ADDED:
