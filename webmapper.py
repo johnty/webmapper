@@ -74,10 +74,11 @@ def on_signal(sig, action):
 
 def on_link(link, action):
     if action == mapper.ADDED:
-        print "Link added"
+        print "Link added; link type = "
+        print type(link)
         props = link.properties.copy()
-        # props["src_name"] = link.device.name
-        # props["dst_name"] = "bar"
+        props["src_name"] = link.device(1).name
+        props["dst_name"] = link.device(0).name
         server.send_command("new_link", props)
     if action == mapper.MODIFIED:
         print "Link modified"
@@ -204,7 +205,7 @@ def init_monitor():
     monitor.add_device_callback(on_device)
     monitor.add_signal_callback(on_signal)
     monitor.add_link_callback(on_link)
-    #monitor.add_map_callback(on_connection)
+    #monitor.add_map_callback(on_connection) # "connection" from 0.4 is now a "map" in 1.0
 
 init_monitor()
 
