@@ -41,35 +41,52 @@ def open_gui(port):
     launcher = threading.Thread(target=launch)
     launcher.start()
 
-monitor = mapper.database(subscribe_flags=mapper.OBJ_ALL)
+monitor = mapper.database(subscribe_flags=mapper.OBJ_DEVICES | mapper.OBJ_OUTGOING_LINKS)
 #monitor = mapper.monitor(autosubscribe_flags=mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT)
 
 def on_device(dev, action):
     if action == mapper.ADDED:
-        print "Device ", dev.name, "added"
-        server.send_command("new_device", dev)
+        print "Device " + dev.name + "added"
+        props = dev.properties.copy()
+        props['synced'] = props['synced'].get_double()
+        server.send_command("new_device", props)
     if action == mapper.MODIFIED:
         print "Device ", dev.name, "modified"
-        server.send_command("mod_device", dev)
+        props = dev.properties.copy()
+        props['synced'] = props['synced'].get_double()
+        server.send_command("new_device", props)
     if action == mapper.REMOVED:
         print "Device ", dev.name, "removed"
-        server.send_command("del_device", dev)
+        props = dev.properties.copy()
+        props['synced'] = props['synced'].get_double()
+        server.send_command("new_device", props)
 
 def on_signal(sig, action):
     if action == mapper.ADDED:
-        server.send_command("new_signal", sig)
+        props = sig.properties.copy()
+        server.send_command("new_signal", props)
     if action == mapper.MODIFIED:
-        server.send_command("mod_signal", sig)
+        props = sig.properties.copy()
+        server.send_command("mod_signal", props)
     if action == mapper.REMOVED:
-        server.send_command("del_signal", sig)
+        props = sig.properties.copy()
+        server.send_command("del_signal", props)
 
 def on_link(link, action):
     if action == mapper.ADDED:
-        server.send_command("new_link", link)
+        print "Link added"
+        props = link.properties.copy()
+        # props["src_name"] = link.device.name
+        # props["dst_name"] = "bar"
+        server.send_command("new_link", props)
     if action == mapper.MODIFIED:
-        server.send_command("mod_link", link)
+        print "Link modified"
+        props = link.properties.copy()
+        server.send_command("mod_link", props)
     if action == mapper.REMOVED:
-        server.send_command("del_link", link)
+        print "Link removed"
+        props = link.properties.copy()
+        server.send_command("del_link", props)
 
 def on_connection(con, action):
     if action == mapper.ADDED:
@@ -185,8 +202,8 @@ def get_active_network(arg):
 
 def init_monitor():
     monitor.add_device_callback(on_device)
-    #monitor.add_signal_callback(on_signal)
-    #monitor.add_link_callback(on_link)
+    monitor.add_signal_callback(on_signal)
+    monitor.add_link_callback(on_link)
     #monitor.add_map_callback(on_connection)
 
 init_monitor()
