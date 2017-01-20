@@ -1,0 +1,5 @@
+('/Users/johnty/dev/libmapper-stuff/webmapper/build/webmapper/netifaces-0.10.4-py2.7-macosx-10.11-intel.egg',
+ None,
+ set(['*.py', '*.pyc', '*.pyd', '*.pyo', '*.so', 'EGG-INFO']),
+ 'DATA',
+ [])
