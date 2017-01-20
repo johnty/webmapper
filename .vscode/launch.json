@@ -9,6 +9,7 @@
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/webmapper.py",
             "cwd": "${workspaceRoot}",
+            "args": ["--no-browser"],
             "debugOptions": [
                 "WaitOnAbnormalExit",
                 "WaitOnNormalExit",

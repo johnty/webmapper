@@ -166,7 +166,7 @@ class MapperHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_websocket_8(self):
         def send_string(s):
-            print s
+            #print "server_SS :" + s
             opcode = chr((1<<7)|1) # FIN + text
             if len(s)<126:
                 L = chr(len(s))

@@ -64,6 +64,7 @@ def on_device(dev, action):
 def on_signal(sig, action):
     if action == mapper.ADDED:
         props = sig.properties.copy()
+        props["device_name"] = "foooAAAArgh"
         server.send_command("new_signal", props)
     if action == mapper.MODIFIED:
         props = sig.properties.copy()
@@ -74,11 +75,11 @@ def on_signal(sig, action):
 
 def on_link(link, action):
     if action == mapper.ADDED:
-        print "Link added; link type = "
         print type(link)
         props = link.properties.copy()
         props["src_name"] = link.device(1).name
-        props["dst_name"] = link.device(0).name
+        props["dest_name"] = link.device(0).name
+        print "Link added from " + props["src_name"] + " to " + props["dest_name"]
         server.send_command("new_link", props)
     if action == mapper.MODIFIED:
         print "Link modified"
@@ -91,23 +92,29 @@ def on_link(link, action):
 
 def on_connection(con, action):
     if action == mapper.ADDED:
-        server.send_command("new_connection", con)
+        print "Connection added"
+        props = con.properties.copy()
+        server.send_command("new_connection", props)
     if action == mapper.MODIFIED:
-        server.send_command("mod_connection", con)
+        print "Connection modified"
+        props = con.properties.copy()
+        server.send_command("new_connection", props)
     if action == mapper.REMOVED:
-        server.send_command("del_connection", con)
+        print "Connection removed"
+        props = con.properties.copy()
+        server.send_command("new_connection", props)
 
 def set_connection(con):
     if con.has_key('mode'):
-        con['mode'] = {'bypass': mapper.MO_BYPASS,
-                       'reverse': mapper.MO_REVERSE,
-                       'linear': mapper.MO_LINEAR,
-                       'calibrate': mapper.MO_CALIBRATE,
-                       'expression': mapper.MO_EXPRESSION}[con['mode']]
+        con['mode'] = {'bypass': mapper.BOUND_NONE,
+                       'reverse': mapper.BOUND_FOLD, #fold == reverse??
+                       'linear': mapper.MODE_LINEAR,
+                       'calibrate': mapper.MO_CALIBRATE, #?!
+                       'expression': mapper.MODE_EXPRESSION}[con['mode']]
     if (con.has_key('src_min')):
         if (type(con['src_min']) is int or type(con['src_min']) is float):
             con['src_min'] = float(con['src_min'])
-            numargs = 1;
+            numargs = 1
         else:
             if (type(con['src_min']) is str):
                 con['src_min'] = con['src_min'].replace(',',' ').split()
@@ -219,10 +226,20 @@ def select_tab(src_dev):
     #     # revert device subscription back to only device and link metadata
     #     monitor.subscribe(focus_dev, mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT, -1)
     if src_dev != "All Devices":
-        monitor.subscribe(src_dev, mapper.SUB_DEVICE_OUTPUTS | mapper.SUB_DEVICE_CONNECTIONS_OUT, -1)
-        # links = monitor.links_by_property(); # .db.links_by_src_device_name(src_dev)
+        # monitor.subscribe(src_dev, mapper.SUB_DEVICE_OUTPUTS | mapper.SUB_DEVICE_CONNECTIONS_OUT, -1)
+        # 0.4 -> 1.0 changes:
+        dev = mapper.device(src_dev)
+        
+        links = monitor.links()
+        count = 1
         for i in links:
-            monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
+            #monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
+            linkprops = i.properties.copy()
+            print str(count) + str(links.num_maps)
+            count=count+1
+
+            #print i["dest_name"]
+            #monitor.subscribe(i["dest_name"], mapper.OBJ_INCOMING_MAPS, -1)
 
 def new_connection(args):
     source = str(args[0])

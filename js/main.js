@@ -87,6 +87,8 @@ function initMonitorCommands()
     command.register("new_signal", function(cmd, args) {
         model.signals.add(args.device_name+args.name
                           + '/_dir_' + args.direction, args);
+        console.log(args.device_name+args.name
+                          + '/_dir_' + args.direction)
         update_display();
     });
     command.register("del_signal", function(cmd, args) {
@@ -101,6 +103,7 @@ function initMonitorCommands()
     });
     command.register("new_link", function(cmd, args) {
         model.links.add(args.src_name+'>'+args.dest_name, args);
+        console.log("new_link from " + args.src_name + " to " + args.dest_name);
         update_display();
     });
     command.register("del_link", function(cmd, args) {
