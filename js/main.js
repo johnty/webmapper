@@ -88,7 +88,7 @@ function initMonitorCommands()
         model.signals.add(args.device_name+args.name
                           + '/_dir_' + args.direction, args);
         console.log(args.device_name+args.name
-                          + '/_dir_' + args.direction)
+                          + '/_dir_' + args.direction, args);
         update_display();
     });
     command.register("del_signal", function(cmd, args) {

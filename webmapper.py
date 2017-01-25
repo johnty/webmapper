@@ -64,13 +64,17 @@ def on_device(dev, action):
 def on_signal(sig, action):
     if action == mapper.ADDED:
         props = sig.properties.copy()
-        props["device_name"] = "foooAAAArgh"
+        props["device_name"] = sig.device().name
+        props["name"] = "/" + props["name"]
         server.send_command("new_signal", props)
     if action == mapper.MODIFIED:
         props = sig.properties.copy()
+        props["device_name"] = sig.device().name
+        #props["name"] = "/" + props["name"]
         server.send_command("mod_signal", props)
     if action == mapper.REMOVED:
         props = sig.properties.copy()
+        props["device_name"] = sig.device().name
         server.send_command("del_signal", props)
 
 def on_link(link, action):
@@ -90,6 +94,7 @@ def on_link(link, action):
         props = link.properties.copy()
         server.send_command("del_link", props)
 
+#TODO: rename to on_map for 1.0
 def on_connection(con, action):
     if action == mapper.ADDED:
         print "Connection added"
@@ -104,6 +109,7 @@ def on_connection(con, action):
         props = con.properties.copy()
         server.send_command("new_connection", props)
 
+#TODO: rename to set_map for 1.0
 def set_connection(con):
     if con.has_key('mode'):
         con['mode'] = {'bypass': mapper.BOUND_NONE,
@@ -235,12 +241,13 @@ def select_tab(src_dev):
         for i in links:
             #monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
             linkprops = i.properties.copy()
-            print str(count) + str(links.num_maps)
+            print str(count) + str(linkprops['num_maps'])
             count=count+1
 
             #print i["dest_name"]
             #monitor.subscribe(i["dest_name"], mapper.OBJ_INCOMING_MAPS, -1)
 
+#TODO: rename to new_map for 1.0
 def new_connection(args):
     source = str(args[0])
     dest = str(args[1])
@@ -259,10 +266,11 @@ server.add_command_handler("all_signals",
 server.add_command_handler("all_links",
                            lambda x: ("all_links", list(monitor.links()))) # .db.all_links())))
 
+#TODO: rename to maps for 1.0, sync in main.js
 server.add_command_handler("all_connections",
                            lambda x: ("all_connections",
                                       list(monitor.maps())))
-
+#TODO: rename to maps for 1.0, sync in main.js
 server.add_command_handler("set_connection", set_connection)
 
 server.add_command_handler("link",
@@ -270,9 +278,10 @@ server.add_command_handler("link",
 
 server.add_command_handler("unlink",
                            lambda x: monitor.unlink(*map(str,x)))
-
+#TODO: rename to map for 1.0, sync in main.js
 server.add_command_handler("connect", lambda x: new_connection(x))
 
+#TODO: rename to unmap for 1.0, sync in main.js
 server.add_command_handler("disconnect",
                            lambda x: monitor.disconnect(*map(str,x)))
 
