@@ -41,7 +41,7 @@ def open_gui(port):
     launcher = threading.Thread(target=launch)
     launcher.start()
 
-monitor = mapper.database(subscribe_flags=mapper.OBJ_DEVICES | mapper.OBJ_OUTGOING_LINKS)
+monitor = mapper.database(subscribe_flags=mapper.OBJ_DEVICES | mapper.OBJ_LINKS)
 #monitor = mapper.monitor(autosubscribe_flags=mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT)
 
 def on_device(dev, action):
@@ -232,16 +232,26 @@ def select_tab(src_dev):
     #     # revert device subscription back to only device and link metadata
     #     monitor.subscribe(focus_dev, mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT, -1)
     if src_dev != "All Devices":
-        # monitor.subscribe(src_dev, mapper.SUB_DEVICE_OUTPUTS | mapper.SUB_DEVICE_CONNECTIONS_OUT, -1)
+        dev = monitor.device(src_dev)
+        monitor.subscribe(dev, mapper.OBJ_OUTPUT_SIGNALS | mapper.OBJ_MAPS, -1)
         # 0.4 -> 1.0 changes:
-        dev = mapper.device(src_dev)
-        
-        links = monitor.links()
+        links = dev.links()
+        print "num links = ", dev.num_links
         count = 1
         for i in links:
             #monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
-            linkprops = i.properties.copy()
-            print str(count) + str(linkprops['num_maps'])
+            # linkprops = i.properties.copy() #no need to copy props for now
+            # print str(count) + str(linkprops['num_maps'])
+            linkdev = i.device(0)
+            if linkdev.id != i.id:
+                #subscribe to inputs
+                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS)
+
+            linkdev = i.device(1)
+            if linkdev.id != i.id:
+                #subscribe to inputs
+                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS)
+
             count=count+1
 
             #print i["dest_name"]
