@@ -94,19 +94,20 @@ def on_link(link, action):
         props = link.properties.copy()
         server.send_command("del_link", props)
 
-#TODO: rename to on_map for 1.0
-def on_connection(con, action):
+#TODO: rename to on_map for 1.0; con->map
+def on_map(map, action):
     if action == mapper.ADDED:
-        print "Connection added"
-        props = con.properties.copy()
+        s = 'new map; sources ', map.get_num_sources(), ' dests ', map.get_num_destinations()
+        print s
+        props = map.properties.copy()
         server.send_command("new_connection", props)
     if action == mapper.MODIFIED:
         print "Connection modified"
-        props = con.properties.copy()
+        props = map.properties.copy()
         server.send_command("new_connection", props)
     if action == mapper.REMOVED:
         print "Connection removed"
-        props = con.properties.copy()
+        props = map.properties.copy()
         server.send_command("new_connection", props)
 
 #TODO: rename to set_map for 1.0
@@ -218,7 +219,9 @@ def init_monitor():
     monitor.add_device_callback(on_device)
     monitor.add_signal_callback(on_signal)
     monitor.add_link_callback(on_link)
-    #monitor.add_map_callback(on_connection) # "connection" from 0.4 is now a "map" in 1.0
+    #monitor.add_map_callback(on_connection) 
+    # "connection" from 0.4 is now a "map" in 1.0
+    monitor.add_map_callback(on_map)
 
 init_monitor()
 
@@ -232,12 +235,18 @@ def select_tab(src_dev):
     #     # revert device subscription back to only device and link metadata
     #     monitor.subscribe(focus_dev, mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT, -1)
     if src_dev != "All Devices":
+        print "# db devices = ", monitor.num_devices
         dev = monitor.device(src_dev)
+        print "selected device name = ", dev.name
+        
         monitor.subscribe(dev, mapper.OBJ_OUTPUT_SIGNALS | mapper.OBJ_MAPS, -1)
         # 0.4 -> 1.0 changes:
         links = dev.links()
+        maps = dev.maps()
         print "num links = ", dev.num_links
-        count = 1
+        print "num maps = ", dev.num_maps
+        count = 0
+        
         for i in links:
             #monitor.subscribe(i["dest_name"], mapper.SUB_DEVICE_INPUTS, -1)
             # linkprops = i.properties.copy() #no need to copy props for now
@@ -245,12 +254,14 @@ def select_tab(src_dev):
             linkdev = i.device(0)
             if linkdev.id != i.id:
                 #subscribe to inputs
-                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS)
+                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
+                print "subscribing to destination {}'s input signals".format(linkdev.name)
 
             linkdev = i.device(1)
             if linkdev.id != i.id:
                 #subscribe to inputs
-                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS)
+                monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
+                print "subscribing to source {}'s input signals".format(linkdev.name)
 
             count=count+1
 
