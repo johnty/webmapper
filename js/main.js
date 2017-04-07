@@ -118,6 +118,7 @@ function initMonitorCommands()
             topMenu.updateConnectionPropertiesFor(args[d]);
     });
     command.register("new_connection", function(cmd, args) {
+        console.log("new_connect/map from " + args.src_name + " to " + args.dest_name);
         model.connections.add(args.src_name + '>' + args.dest_name, args);
         update_display();
         topMenu.updateConnectionPropertiesFor(args);
@@ -156,7 +157,6 @@ function initViewCommands()
     // dst = "/devicename"
     $("#container").on("link", function(e, src, dst){
         command.send('link', [src, dst]);
-        console.log(src, dst);
     });
 
     // unlink command
@@ -171,6 +171,7 @@ function initViewCommands()
     // dst = "/devicename/signalname"
     $("#container").on("connect", function(e, src, dst, args){
         command.send('connect', [src, dst, args]);
+        console.log("sending on_connect");
     });
 
     // disconnect command
@@ -178,6 +179,7 @@ function initViewCommands()
     // dst = "/devicename/signalname"
     $("#container").on("disconnect", function(e, src, dst){
         command.send('disconnect', [src, dst]);
+        console.log("on_disconnect");
     });
 
     // asks the view for the selected connections and updates the edit bar

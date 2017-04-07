@@ -24,6 +24,7 @@ LibMapperModel.prototype = {
     selectedConnections_addConnection : function(src, dst) {
         // no polymorphism in JS... arrg!
         // called with no 'dst' if the full key is passed in src
+        console.log("mapperModel: adding connection from " + src + " to " + dst);
         var key = src;
         if (dst != null)
             key += ">" + dst;

@@ -97,9 +97,11 @@ def on_link(link, action):
 #TODO: rename to on_map for 1.0; con->map
 def on_map(map, action):
     if action == mapper.ADDED:
-        s = 'new map; sources ', map.get_num_sources(), ' dests ', map.get_num_destinations()
-        print s
         props = map.properties.copy()
+        props["src_name"] = map.source().signal().get_name()
+        props["dest_name"] = map.destination().signal().get_name()
+        print "Connection added from ", props["src_name"], " to ", props["dest_name"]
+        
         server.send_command("new_connection", props)
     if action == mapper.MODIFIED:
         print "Connection modified"
@@ -256,12 +258,15 @@ def select_tab(src_dev):
                 #subscribe to inputs
                 monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
                 print "subscribing to destination {}'s input signals".format(linkdev.name)
+                
 
             linkdev = i.device(1)
             if linkdev.id != i.id:
                 #subscribe to inputs
                 monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
                 print "subscribing to source {}'s input signals".format(linkdev.name)
+                monitor.subscribe(linkdev, mapper.OBJ_OUTGOING_MAPS, -1)
+                print "subscribing to source {}'s output maps".format(linkdev.name)
 
             count=count+1
 
