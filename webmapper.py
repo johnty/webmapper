@@ -51,12 +51,12 @@ def on_device(dev, action):
         props['synced'] = props['synced'].get_double()
         server.send_command("new_device", props)
     if action == mapper.MODIFIED:
-        print "Device ", dev.name, "modified"
+        print "Device " + dev.name + "modified"
         props = dev.properties.copy()
         props['synced'] = props['synced'].get_double()
         server.send_command("new_device", props)
     if action == mapper.REMOVED:
-        print "Device ", dev.name, "removed"
+        print "Device " + dev.name + "removed"
         props = dev.properties.copy()
         props['synced'] = props['synced'].get_double()
         server.send_command("new_device", props)
@@ -100,17 +100,17 @@ def on_map(map, action):
         props = map.properties.copy()
         props["src_name"] = map.source().signal().get_name()
         props["dest_name"] = map.destination().signal().get_name()
-        print "Connection added from ", props["src_name"], " to ", props["dest_name"]
+        print "Connection added from " + props["src_name"] + " to " + props["dest_name"]
         
         server.send_command("new_connection", props)
     if action == mapper.MODIFIED:
         print "Connection modified"
         props = map.properties.copy()
-        server.send_command("new_connection", props)
+        server.send_command("mod_connection", props)
     if action == mapper.REMOVED:
         print "Connection removed"
         props = map.properties.copy()
-        server.send_command("new_connection", props)
+        server.send_command("del_connection", props)
 
 #TODO: rename to set_map for 1.0
 def set_connection(con):

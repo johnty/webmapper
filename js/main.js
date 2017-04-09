@@ -59,6 +59,7 @@ function initMonitorCommands()
     });
     command.register("new_device", function(cmd, args) {
         model.devices.add(args.name, args);
+        console.log("new_device: ", args.name);
         update_display();
     });
     command.register("del_device", function(cmd, args) {
@@ -82,13 +83,16 @@ function initMonitorCommands()
         for (var d in args)
             model.signals.add(args[d].device_name+args[d].name
                               + '/_dir_'+args[d].direction, args[d]);
+            console.log("add signal: ", args[d].device_name+args[d].name
+                              + '/_dir_'+args[d].direction, args[d])
         update_display();
     });
     command.register("new_signal", function(cmd, args) {
         model.signals.add(args.device_name+args.name
                           + '/_dir_' + args.direction, args);
-        console.log(args.device_name+args.name
-                          + '/_dir_' + args.direction, args);
+        console.log("new_signal:", args.device_name+args.name
+                          + '/_dir_' + args.direction);
+        console.log("new_signal args: ", args)
         update_display();
     });
     command.register("del_signal", function(cmd, args) {
