@@ -46,20 +46,20 @@ monitor = mapper.database(subscribe_flags=mapper.OBJ_DEVICES | mapper.OBJ_LINKS)
 
 def on_device(dev, action):
     if action == mapper.ADDED:
-        print "Device " + dev.name + "added"
+        print "webmapper.py: Device " + dev.name + " ADDED"
         props = dev.properties.copy()
         props['synced'] = props['synced'].get_double()
         server.send_command("new_device", props)
     if action == mapper.MODIFIED:
-        print "Device " + dev.name + "modified"
+        print "webmapper.py: Device " + dev.name + " MODIFIED"
         props = dev.properties.copy()
         props['synced'] = props['synced'].get_double()
-        server.send_command("new_device", props)
+        #server.send_command("mod_device", props)
     if action == mapper.REMOVED:
-        print "Device " + dev.name + "removed"
+        print "webmapper.py: Device " + dev.name + " REMOVED"
         props = dev.properties.copy()
         props['synced'] = props['synced'].get_double()
-        server.send_command("new_device", props)
+        server.send_command("del_device", props)
 
 def on_signal(sig, action):
     if action == mapper.ADDED:
@@ -67,15 +67,18 @@ def on_signal(sig, action):
         props["device_name"] = sig.device().name
         props["name"] = "/" + props["name"]
         server.send_command("new_signal", props)
+        print "webmapper.py: Signal " + props["name"] + " ADDED"
     if action == mapper.MODIFIED:
         props = sig.properties.copy()
         props["device_name"] = sig.device().name
         #props["name"] = "/" + props["name"]
         server.send_command("mod_signal", props)
+        print "webmapper.py: Signal " + props["name"] + " MODIFIED"
     if action == mapper.REMOVED:
         props = sig.properties.copy()
         props["device_name"] = sig.device().name
         server.send_command("del_signal", props)
+        print "webmapper.py: Signal " + props["name"] + " REMOVED"
 
 def on_link(link, action):
     if action == mapper.ADDED:
@@ -83,16 +86,18 @@ def on_link(link, action):
         props = link.properties.copy()
         props["src_name"] = link.device(1).name
         props["dest_name"] = link.device(0).name
-        print "Link added from " + props["src_name"] + " to " + props["dest_name"]
+        print "webmapper.py: Link ADDED from dev " + props["src_name"] + " to " + props["dest_name"]
         server.send_command("new_link", props)
     if action == mapper.MODIFIED:
-        print "Link modified"
+        print "webmapper.py: Link modified"
         props = link.properties.copy()
         server.send_command("mod_link", props)
+        print "webmapper.py: Link MODIFIED from dev " + props["src_name"] + " to " + props["dest_name"]
     if action == mapper.REMOVED:
-        print "Link removed"
+        print "webmapper.py: Link removed"
         props = link.properties.copy()
         server.send_command("del_link", props)
+        print "webmapper.py: Link REMOVED from dev " + props["src_name"] + " to " + props["dest_name"]
 
 #TODO: rename to on_map for 1.0; con->map
 def on_map(map, action):
@@ -100,17 +105,17 @@ def on_map(map, action):
         props = map.properties.copy()
         props["src_name"] = map.source().signal().get_name()
         props["dest_name"] = map.destination().signal().get_name()
-        print "Connection added from " + props["src_name"] + " to " + props["dest_name"]
-        
+        print "webmapper.py: map ADDED from " + props["src_name"] + " to " + props["dest_name"]
         server.send_command("new_connection", props)
     if action == mapper.MODIFIED:
-        print "Connection modified"
         props = map.properties.copy()
         server.send_command("mod_connection", props)
+        print "webmapper.py: map MODIFIED from " + props["src_name"] + " to " + props["dest_name"]
     if action == mapper.REMOVED:
-        print "Connection removed"
+        print "webmapper.py: Connection removed"
         props = map.properties.copy()
         server.send_command("del_connection", props)
+        print "webmapper.py: map REMOVED from " + props["src_name"] + " to " + props["dest_name"]
 
 #TODO: rename to set_map for 1.0
 def set_connection(con):
@@ -213,7 +218,7 @@ def get_networks(arg):
     server.send_command("active_network", networkInterfaces['active'])
 
 def get_active_network(arg):
-    print networkInterfaces['active']
+    print 'webmapper.py: '+ networkInterfaces['active']
     server.send_command("active_network", networkInterfaces['active'])
 
 
@@ -237,16 +242,16 @@ def select_tab(src_dev):
     #     # revert device subscription back to only device and link metadata
     #     monitor.subscribe(focus_dev, mapper.SUB_DEVICE | mapper.SUB_DEVICE_LINKS_OUT, -1)
     if src_dev != "All Devices":
-        print "# db devices = ", monitor.num_devices
+        print "webmapper.py: # db devices = ", monitor.num_devices
         dev = monitor.device(src_dev)
-        print "selected device name = ", dev.name
+        print "webmapper.py: selected device name = ", dev.name
         
         monitor.subscribe(dev, mapper.OBJ_OUTPUT_SIGNALS | mapper.OBJ_MAPS, -1)
         # 0.4 -> 1.0 changes:
         links = dev.links()
         maps = dev.maps()
-        print "num links = ", dev.num_links
-        print "num maps = ", dev.num_maps
+        #print "num links = ", dev.num_links
+        #print "num maps = ", dev.num_maps
         count = 0
         
         for i in links:
@@ -257,16 +262,16 @@ def select_tab(src_dev):
             if linkdev.id != i.id:
                 #subscribe to inputs
                 monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
-                print "subscribing to destination {}'s input signals".format(linkdev.name)
+                print "webmapper.py: subscribing to destination {}'s input signals".format(linkdev.name)
                 
 
             linkdev = i.device(1)
             if linkdev.id != i.id:
                 #subscribe to inputs
                 monitor.subscribe(linkdev, mapper.OBJ_INPUT_SIGNALS, -1)
-                print "subscribing to source {}'s input signals".format(linkdev.name)
+                print "webmapper.py: subscribing to source {}'s input signals".format(linkdev.name)
                 monitor.subscribe(linkdev, mapper.OBJ_OUTGOING_MAPS, -1)
-                print "subscribing to source {}'s output maps".format(linkdev.name)
+                print "webmapper.py: subscribing to source {}'s output maps".format(linkdev.name)
 
             count=count+1
 

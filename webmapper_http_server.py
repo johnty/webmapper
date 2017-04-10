@@ -166,7 +166,7 @@ class MapperHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_websocket_8(self):
         def send_string(s):
-            #print "server_SS :" + s
+            print "mapper_server send string: " + s
             opcode = chr((1<<7)|1) # FIN + text
             if len(s)<126:
                 L = chr(len(s))
@@ -188,8 +188,6 @@ class MapperHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             while not message_pipe.empty() and n < 30:
                 sendmsg = message_pipe.get()
                 if tracing: print 'ws_send:',sendmsg
-                print sendmsg[0]
-                print sendmsg[1]
                 s = json.dumps({"cmd": sendmsg[0],
                                 "args": sendmsg[1]})
                 send_string(s)
@@ -357,16 +355,16 @@ def handler_wait_command(out, args):
                               "args": msg[1]} )
 
 def handler_send_command(out, args):
-    print "server_send_command_handler"
+    print "webmapper_server: server_send_command_handler"
     try:
         msgstring = args['msg']
         vals = json.loads(msgstring)
         h = cmd_handlers[vals['cmd']]
     except KeyError:
-        print 'send_command: no message found in "%s"'%str(msgstring)
+        print '   send_command: no message found in "%s"'%str(msgstring)
         return
     except ValueError, e:
-        print 'send_command: bad embedded JSON "%s"'%msgstring
+        print '   send_command: bad embedded JSON "%s"'%msgstring
         raise e
         return
 
@@ -443,16 +441,16 @@ def serve(port=8000, poll=lambda: time.sleep(10), on_open=lambda: (),
     http_thread = threading.Thread(target=httpd.serve_forever)
     http_thread.start()
 
-    print "serving at port", port
+    print "webmapper_server: serving at port", port
     try:
         while ref.count > 0 or not quit_on_disconnect:
             for i in range(100):
                 poll()
-        print "Lost connection."
+        print "webmapper_server: Lost connection."
     except KeyboardInterrupt:
         pass
 
-    print "shutting down..."
+    print "webmapper_server: shutting down..."
     httpd.shutdown()
     http_thread.join()
-    print 'bye.'
+    print 'webmapper_server: bye.'
