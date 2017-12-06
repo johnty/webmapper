@@ -133,8 +133,15 @@ function initViewCommands()
     $('#saveButton').on('click', function(e) {
         e.stopPropagation();
         let file = { "fileversion": "2.2",
-                     "mapping": { "maps": [] }
+                     "mapping": { "devices": [], "maps": [] }
                    };
+        model.devices.each(function(dev) {
+            let d = {'name' : dev.name, 'signals': []};
+            dev.signals.each(function(sig) {
+                d.signals.push(sig.name);
+            });
+            file.mapping.devices.push(d);
+        });
 
         model.maps.each(function(map) {
             if (!map.view)
@@ -394,6 +401,7 @@ function initViewCommands()
                     reader.abort();
                     return;
                 }
+                console.log("pasred file ", file);
                 view.switch_view("link");
                 view.parse_file(parsed);
             };
