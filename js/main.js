@@ -12,6 +12,8 @@ var viewSelector;
 
 var input;
 
+var doSaveAll;
+
 window.onload = init;           // Kick things off
 
 /* The main program. */
@@ -129,19 +131,34 @@ function initViewCommands()
         $(this).addClass("viewButtonsel");
     });
 
+    $('#saveAll').on('change', function(e) {
+        if (this.checked) {
+            doSaveAll = true;
+        }
+        else {
+            doSaveAll = false;
+        }
+    });
+
+
     // TODO: add "save as" option
     $('#saveButton').on('click', function(e) {
+
         e.stopPropagation();
         let file = { "fileversion": "2.2",
                      "mapping": { "devices": [], "maps": [] }
                    };
+
+        //if we want to save everything, add devices to mapping file as well.
+        if (doSaveAll) {
         model.devices.each(function(dev) {
-            let d = {'name' : dev.name, 'signals': []};
-            dev.signals.each(function(sig) {
-                d.signals.push(sig.name);
+                let d = {'name' : dev.name, 'signals': []};
+                dev.signals.each(function(sig) {
+                    d.signals.push(sig.name);
+                });
+                file.mapping.devices.push(d);
             });
-            file.mapping.devices.push(d);
-        });
+        }
 
         model.maps.each(function(map) {
             if (!map.view)

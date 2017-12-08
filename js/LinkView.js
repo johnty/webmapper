@@ -13,6 +13,7 @@ function LinkView(frame, tables, canvas, model)
     tables.right.show_detail(false);
 
     var staged_file = null;
+    let devs = null;
     let maps = null;
     let links = {};
 
@@ -84,6 +85,7 @@ function LinkView(frame, tables, canvas, model)
     }
 
     this.stage_file = function(file) {
+        console.log("link view staging file...")
         if (!file.fileversion || !file.mapping) {
             console.log("unknown file type");
             return;
@@ -113,7 +115,23 @@ function LinkView(frame, tables, canvas, model)
         // find devices referenced in file
         staged_file.devices = {};
         staged_file.num_devices = 0;
+
+        devs = staged_file.mapping.devices;
+
         maps = staged_file.mapping.maps;
+        console.log("staged maps ", maps);
+        console.log("staged devices ", devs);
+
+        for (var i in devs) {
+            let dev = devs[i];
+            if (model.devices.find(dev.name)) {
+                console.log("device ", dev.name, " is online");
+            }
+            else {
+                console.log("device ", dev.name, " is offline");
+            }
+        }
+
         for (var i in maps) {
             let map = maps[i];
             for (var j in map.sources) {
@@ -135,6 +153,8 @@ function LinkView(frame, tables, canvas, model)
                 }
             }
         }
+
+
         if (!staged_file.num_devices) {
             console.log("no devices found in file!");
             return;

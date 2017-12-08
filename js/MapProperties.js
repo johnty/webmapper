@@ -12,9 +12,9 @@ MapProperties.prototype = {
         var _self = this;   // to pass to context of THIS to event handlers
 
         window.saveLocation = '';        // Where the network will be saved
-
+                                                        //75%-170
         $(this._container).append(
-            "<div' class='topMenu' style='width:calc(75% - 170px);'>"+
+            "<div' class='topMenu' style='width:calc(75% - 185px);'>"+
                 "<div class='topMenuTitle'><strong>MAP</strong></div>"+
                 "<div id='mapPropsDiv' class='topMenuContainer'></div>"+
             "</div>");
